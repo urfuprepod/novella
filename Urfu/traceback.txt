@@ -1,0 +1,30 @@
+﻿I'm sorry, but an uncaught exception occurred.
+
+While running game code:
+  File "game/script.rpy", line 147, in script
+    menu students:
+SyntaxError: invalid syntax (game/script.rpy, line 149)
+
+-- Full Traceback ------------------------------------------------------------
+
+Full traceback:
+  File "game/script.rpy", line 147, in script
+    menu students:
+  File "C:\Users\IlyaPapich\Desktop\renpy-8.3.7-sdk\renpy\ast.py", line 1632, in execute
+    choice = renpy.exports.menu(choices, self.set, args, kwargs, item_arguments)
+  File "C:\Users\IlyaPapich\Desktop\renpy-8.3.7-sdk\renpy\exports\menuexports.py", line 100, in menu
+    condition = renpy.python.py_eval(condition)
+  File "C:\Users\IlyaPapich\Desktop\renpy-8.3.7-sdk\renpy\python.py", line 1216, in py_eval
+    code = py_compile(code, 'eval')
+  File "C:\Users\IlyaPapich\Desktop\renpy-8.3.7-sdk\renpy\python.py", line 1153, in py_compile
+    raise e
+  File "C:\Users\IlyaPapich\Desktop\renpy-8.3.7-sdk\renpy\python.py", line 1090, in py_compile
+    raise orig_e
+  File "C:\Users\IlyaPapich\Desktop\renpy-8.3.7-sdk\renpy\python.py", line 1082, in py_compile
+    tree = compile(source, filename, py_mode, ast.PyCF_ONLY_AST | flags, 1)
+SyntaxError: invalid syntax (game/script.rpy, line 149)
+
+Windows-10-10.0.26100 AMD64
+Ren'Py 8.3.7.25031702
+IstFuck 1.0
+Wed May 21 19:50:49 2025
