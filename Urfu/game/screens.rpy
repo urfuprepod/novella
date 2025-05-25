@@ -306,6 +306,8 @@ screen navigation():
 
         textbutton _("Загрузить") action ShowMenu("load")
 
+        textbutton _("Достижения") action Show("achievements") 
+
         textbutton _("Настройки") action ShowMenu("preferences")
 
         if _in_replay:
@@ -1608,3 +1610,77 @@ style slider_vbox:
 style slider_slider:
     variant "small"
     xsize 900
+
+init python:
+    persistent.all_achievements = {}
+    achievements = {
+        "achievement1": {  # Уникальный ID (строка)
+            "name": "Начало пути",       # Название ачивки
+            "desc": "Завершить первую главу",  # Описание
+        
+            "hidden": False              # Скрыта ли ачивка изначально?
+        },
+        "achievement2": {
+            "name": "Секретное достижение",
+            "desc": "Найти скрытый предмет",
+          
+            "hidden": False  # До解锁前 не видно
+        }
+}
+
+screen achievements():
+    frame:
+        xfill True
+        yfill True
+        top_margin 50           # Отступ сверху (чтобы не залезало на меню)
+        bottom_margin 20        # Отступ снизу
+        left_margin 20          # Отступ слева
+        right_margin 20
+
+        vbox:
+            xalign 0.5
+            text "ДОСТИЖЕНИЯ" style "game_menu_title" xalign 0.5
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
+                yfill True
+
+                vbox:
+                    spacing 20  # Расстояние между ачивками
+                    xfill True
+
+                    # Пример достижения (замените на свои данные)
+                    for ach_id, ach in achievements.items():
+                        hbox:
+                            spacing 15
+                            xfill True
+
+                            # Иконка (если есть)
+                            if ach.get("icon"):
+                                add ach["icon"]:
+                                    size (80, 80)
+                            else:
+                                null width 80 height 80  # Пустое место, если нет иконки
+
+                            # Текстовая часть
+                            vbox:
+                                yalign 0.5
+                                if persistent.all_achievements.get(ach_id) or not ach.get("hidden", False):
+                                    text ach["name"] 
+                                    text ach["desc"] 
+                                else:
+                                    text "???" 
+                                    text "Секретное достижение"
+
+            # Кнопка закрытия
+            textbutton "Закрыть":
+                xalign 0.5
+                action Hide("achievements")
+
+screen notify_achievement(ach_name):
+    frame:
+        xalign 1.0
+        yalign 0.0
+        text "Достижение: " + ach_name
+        timer 3.0 action Hide("notify_achievement")  # Автоматически скрыть

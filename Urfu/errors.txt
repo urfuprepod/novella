@@ -2,13 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 162: expected statement.
-    "1986 год":
+File "game/script.rpy", line 403: 'background' is not a keyword argument or valid child of the for statement.
+    background "#ffe066"
               ^
 
-File "game/script.rpy", line 164: expected statement.
-    "Нет смысла отвлекаться на списки выпускников, надо заняться сессией":
-                                                                         ^
-
 Ren'Py Version: Ren'Py 8.3.7.25031702
-Wed May 21 19:48:58 2025
+Sun May 25 13:56:47 2025

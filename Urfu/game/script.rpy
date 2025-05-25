@@ -6,11 +6,9 @@ define i = Character('Илья', color="#50c878")
 define v = Character('Ваня', color="#00ffff")
 define mc = None
 define friend = None
-define g_1984 = False
-define g_1985 = False
 define was_on_departament = False
 define british_mark = -1
-define war_mark = -1
+define do_war = False
 define students = {
     '1985': False,
     '1986': False,
@@ -21,11 +19,20 @@ default card_amount = 12
 default card_rows = 3
 default cards = []
 default selected_cards = []
-default hidden_cards = []
+default hidden_cards = 0
 default match_found = False
+default associations = [{'text': 'Наполеон Бонапарт', 'value': 0}, {'text': 'Битве при Аустерлице', 'value': 0}, 
+{'text': 'Гебхард Леберехт фон Блюхер', 'value': 1}, {'text': 'Битва при Ватерлоо', 'value': 1}, 
+{'text': 'Ян Собеский', 'value': 2}, {'text': 'Битва при Вене', 'value': 2}, 
+{'text': 'Сулейман I', 'value': 3}, {'text': 'Битва при Мохаче', 'value': 3},
+{'text': 'Вильгельм Завоеватель', 'value': 4}, {'text': 'Битва при Гастингсе', 'value': 4},
+# {'text': 'Густав II Адольф', 'value': 5,}, {'text': 'Битва при Брейтенфельде', 'value': 5},
+{'text': 'Дмитрий Донской', 'value': 5}, {'text': 'Куликовская битва', 'value': 5}
+]
 
 init python:
     import csv
+    import random
 
     def load_people_by_year(year):
         students = []
@@ -40,6 +47,52 @@ init python:
                     if (year == student_year):
                         students.append(name)
         return students
+
+    def randomize_cards():
+        global cards
+        cards = []
+        cards_top = list(range(int(card_amount / 2))) 
+        random.shuffle(cards_top)
+        for i in cards_top:
+            filtered_list = [el for el in associations if el["value"] == i]
+            cards.append([filtered_list[0]['text'], 'deselected', 'visible', i])
+            cards.append([filtered_list[1]['text'], 'deselected', 'visible', i])
+        renpy.random.shuffle(cards)
+
+    def select_card(card_index):
+        global selected_cards
+        global match_found
+
+        cards[card_index][1] = 'selected'
+        selected_cards.append(card_index)
+        if len(selected_cards) == 2 and cards[selected_cards[0]][3] == cards[selected_cards[1]][3]:
+            match_found = True
+    def deselect_cards():
+        global selected_cards
+        if len(selected_cards) == 2:
+            for card in cards:
+                if card[1] == 'selected':
+                    card[1] = 'deselected'
+        selected_cards = []
+    def hide_matches():
+        global selected_cards
+        global match_found
+        global hidden_cards
+
+        cards[selected_cards[0]][2] = 'hidden'
+        cards[selected_cards[1]][2] = 'hidden'
+        hidden_cards +=2
+        deselect_cards()
+        match_found = False
+    def reset_memory_game():
+        global match_found
+        global hidden_cards
+
+        match_found = False
+        hidden_cards = 0
+        randomize_cards()
+
+
 
 # Игра начинается здесь
 
@@ -75,7 +128,7 @@ label start:
     if mc == i:
         show papich1
         with fade
-        mc "Ебаный самосвал, сегодня же сессия"
+        mc "Ф5, сегодня же сессия"
     else:
         show vanya1
         with fade
@@ -116,11 +169,11 @@ label main:
         "Куда пойти?"
         "Сходить на кафедру":
             jump departament
-            #block of code to run
         "Сдать британский парламентаризм" if british_mark == -1:
             jump britain
-            #block of code to run
-        "Уйти домой" if (british_mark > -1 and all(value is True for value in students.values())):
+        "Сдать военное искусство" if do_war == False:
+            jump war
+        "Уйти домой" if (british_mark > -1 and all(value is True for value in students.values()) and do_war == True):
             hide papich_scared1
             hide vanya_angry1
             if mc == i:
@@ -275,7 +328,7 @@ label britain:
             pass
 
     menu question_6:
-        "Во время конфликта короля Карла I Стюарта с парламентом был принят был принят акт, запрещающий роспуск парламента без его согласия. В результате парламент принял решение о самороспуске 16 марта 1660 года, за что получил название долгий. А сколько лет он продержался?"
+        "Во время конфликта короля Карла I Стюарта с парламентом был принят акт, запрещающий роспуск парламента без его согласия. В результате парламент принял решение о самороспуске 16 марта 1660 года, за что получил название долгий. А сколько лет он продержался?"
         "5 лет":
             pass
         "10 лет":
@@ -339,11 +392,39 @@ label britain:
         "Вы не сдали экзамен"
         if mc == i:
             show papich_scared1
-            mc "Блять, я получил парашу" 
+            mc "Треш, чел" 
         else:
             show vanya_angry1 at left
             "Не повезло..."
     jump main
+
+transform card_fadein:
+    alpha 0.0
+    easein 0.5 alpha 1.0
+
+screen memory_mini_game:
+    image "game_background.png"
+    text "Соотнесите полководцев и их победы" align (0.05, 0.1) color "#000080" size 32
+    grid int(card_amount / card_rows) card_rows:
+        align(0.9, 0.5)
+        spacing 5
+        for i, card in enumerate(cards):
+            if card[1] == 'deselected' and card[2] == 'visible':
+                imagebutton idle 'card_back.png' sensitive If(len(selected_cards) !=2, True, False) action Function(select_card, card_index = i) at card_fadein
+            elif card[1] == 'selected' and card[2] == 'visible':
+                frame:
+                    background "#ffffff"  # Цвет подложки
+                    xysize (227, 293)     # Размер карточки (по необходимости)
+                    align (0.5, 0.5)
+                    text card[0] color "#000" size 32 xalign 0.5 yalign 0.5
+            else:
+                null
+    if match_found:
+        timer 1.0 action Function(hide_matches) repeat True
+    elif len(selected_cards) == 2:
+        timer 1.0 action Function(deselect_cards) repeat True
+    elif hidden_cards == card_amount:
+        timer 0.5 action Return()
 label war:
     play music war
     scene war
@@ -362,6 +443,17 @@ label war:
         mc "Пар по нему было немного"
         mc "Думаю, что экз должен быть простым"
     stop music
-    play music heart
-    mc "Жду"
+    $ randomize_cards()
+    play music heart loop
+    call screen memory_mini_game
+    stop music
+    play music 'audio.mp3' loop
+    $ do_war = True
+    hide papich_scared1
+    if mc == i:
+        show papich_happy1
+        mc "В соло"
+    else:
+        mc "Изи для меня"
+    jump main
     
