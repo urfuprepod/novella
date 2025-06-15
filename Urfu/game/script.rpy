@@ -1,9 +1,9 @@
 ﻿# Вы можете расположить сценарий своей игры в этом файле.
 
 # Определение персонажей игры.
-define e = Character('Эйлин', color="#e0b218")
 define i = Character('Илья', color="#50c878")
 define v = Character('Ваня', color="#00ffff")
+define ist = Character('Исторический факультет', color="#fb0d00")
 define mc = None
 define friend = None
 define was_on_departament = False
@@ -14,7 +14,7 @@ define students = {
     '1986': False,
     '1987': False
 }
-
+define horde_mark = -1
 default card_amount = 12
 default card_rows = 3
 default cards = []
@@ -26,9 +26,15 @@ default associations = [{'text': 'Наполеон Бонапарт', 'value': 0
 {'text': 'Ян Собеский', 'value': 2}, {'text': 'Битва при Вене', 'value': 2}, 
 {'text': 'Сулейман I', 'value': 3}, {'text': 'Битва при Мохаче', 'value': 3},
 {'text': 'Вильгельм Завоеватель', 'value': 4}, {'text': 'Битва при Гастингсе', 'value': 4},
-# {'text': 'Густав II Адольф', 'value': 5,}, {'text': 'Битва при Брейтенфельде', 'value': 5},
 {'text': 'Дмитрий Донской', 'value': 5}, {'text': 'Куликовская битва', 'value': 5}
 ]
+
+default choices = ['Русич', 'Рыцарь', 'Монгол']
+default points = 0
+default games_amount = 5
+default player_choice = None
+default ai_choice = None
+
 
 init python:
     import csv
@@ -47,6 +53,14 @@ init python:
                     if (year == student_year):
                         students.append(name)
         return students
+
+    def count_wins(player, ai):
+        if player == ai:
+            return 0
+        if (player == 'Русич' and ai == 'Рыцарь' or player == 'Рыцарь' and ai == 'Монгол' or player == 'Монгол' and ai == 'Русич'):
+            return 1
+        else:
+            return -1
 
     def randomize_cards():
         global cards
@@ -112,7 +126,7 @@ label start:
             pass
         
 
-    "Конец мая 2025 года. На истфаке наступает сессия"
+    "Начало июня 2025 года. На истфаке наступает сессия"
 
     "На 4 этаж поднимается..."
 
@@ -134,7 +148,18 @@ label start:
         with fade
         mc 'Блин, сегодня же начинается сессия'
 
-    mc "На сегодня мне нужно сдать британский парламентаризм, военное искусство..."
+    mc "На сегодня мне нужно точно сдать военное искусство"
+
+    mc "Также был предмет по выбору..."
+
+    mc "Британский парламентаризм"
+
+    mc "Или феномен Золотой Орды"
+
+    if mc == i:
+        mc "Вы из Улус-Джучи?{w} Да-да я!"
+    else:
+        mc "И что еще из этого хуже..."
 
     mc "Стоит также сходить на кафедру"
     
@@ -146,6 +171,8 @@ label start:
             jump departament
         "Сдам британский парламентаризм":
             jump britain
+        "Сдам Золотую Орду":
+            jump horde
         "Сдам военное искусство":
             jump war
     
@@ -169,19 +196,28 @@ label main:
         "Куда пойти?"
         "Сходить на кафедру":
             jump departament
-        "Сдать британский парламентаризм" if british_mark == -1:
+        "Сдать британский парламентаризм" if british_mark == -1 and horde_mark == -1:
             jump britain
         "Сдать военное искусство" if do_war == False:
             jump war
-        "Уйти домой" if (british_mark > -1 and all(value is True for value in students.values()) and do_war == True):
-            hide papich_scared1
-            hide vanya_angry1
-            if mc == i:
-                show papich_happy1
+        "Сдать Золотую Орду" if british_mark == -1 and horde_mark == -1:
+            jump horde
+        "Уйти домой" if (all(value is True for value in students.values()) and do_war == True and (british_mark > -1 or horde_mark > -1)):
+            if british_mark > 3 or horde_mark == 1:
+                hide papich_scared1
+                hide vanya_angry1
+                if mc == i:
+                    show papich_happy1
+                else:
+                    show vanya_happy1
+                play music "audio/end.mp3" loop
+                mc "Отлично, сессия успешно сдана"
+                mc "Можно идти домой"
             else:
-                show vanya_happy1
-            play music "audio/end.mp3" loop
-            mc "Все мои дела сделаны, можно идти домой"
+                play music losed
+                mc "Провальная сессия"
+                mc "Может, в другой раз..."
+            
     return
 
 label departament:
@@ -457,3 +493,97 @@ label war:
         mc "Изи для меня"
     jump main
     
+screen choice_squares(player, ai):
+    # Квадратик игрока (слева)
+    frame:
+        pos (200, 300)
+        xysize (200, 200)
+        background None
+        xpadding 0
+        ypadding 0
+        add 'images/' + player + '.jpg'
+    
+    # Квадратик ИИ (справа)
+    if ai != None:
+        frame:
+            pos (1000, 300)
+            xysize (200, 200)
+            background None
+            xpadding 0
+            ypadding 0
+            add 'images/' + ai + '.jpg'
+
+label horde:
+    play music horde
+    scene horde
+
+    if mc == i:
+        show papich_happy1
+        with fade 
+        mc "И кто меня дернул записаться сюда"
+        mc "Похоже, что экзамен будет сложным..."
+    else:
+        show vanya_angry1
+        with fade
+        mc "Плохое у меня предчувствие"
+        mc "Не слететь бы со стипки..."
+        mc "*Ругается по-армянски*"
+    
+    "Необходимо победить Истфак в игре русич-рыцарь-монгол"
+    "Запомните формулу:"
+    "Русич бьет рыцаря, рыцарь бьет монгола, монгол бьет русича"
+    "Всего будет 5 раундов"
+    "Наберите больше побед, чем Истфак"
+    "Ничья засчитывается как поражение"
+    stop music
+    play music horde_game
+    jump game
+
+    label game:
+        scene horde
+        menu:
+            "Что выбрать?"
+            "Русич":
+                $ player_choice = "Русич"
+            "Рыцарь":
+                $ player_choice = "Рыцарь"
+            "Монгол":
+                $ player_choice = "Монгол"
+        mc "[player_choice]"
+        show screen choice_squares(player_choice, None)
+        $ ai_choice = random.choice(choices)
+        ist "[ai_choice]"
+        show screen choice_squares(player_choice, ai_choice)
+        python:
+            points = count_wins(player_choice, ai_choice)
+            games_amount = games_amount - 1
+        $ player_choice = None
+        $ ai_choice = None
+    pause
+    if (games_amount > 0):
+        hide screen choice_squares
+        jump game
+    else:
+        hide screen choice_squares
+        stop music
+        play music after_horde
+        if points > 0:
+            $ horde_mark = 1
+            if mc == v:
+                show vanya_happy1
+            else:
+                show papich_happy1
+            mc "Потно"
+        else:
+            $ horde_mark = 0
+            if mc == i:
+                show papich_scared1
+                mc "Ноу вэй"
+            else:
+                show vanya_angry1
+                mc "Не пытайтесь обмануть исторический факультет"
+        jump main
+
+            
+
+
