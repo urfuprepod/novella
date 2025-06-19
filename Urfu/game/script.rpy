@@ -179,6 +179,16 @@ label start:
     stop music
     return
 
+screen easy_katka:
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xysize (800, 200)
+        background None
+        xpadding 0
+        ypadding 0
+        add 'images/session.png' 
+
 label main:
     scene istfuck
     play music "audio/main.mp3" loop
@@ -211,14 +221,17 @@ label main:
                 else:
                     show vanya_happy1
                 play music "audio/end.mp3" loop
+                show screen easy_katka
                 mc "Отлично, сессия успешно сдана"
                 mc "Можно идти домой"
+                hide screen easy_katka
             else:
                 play music losed
                 mc "Провальная сессия"
                 mc "Может, в другой раз..."
+            return
             
-    return
+    
 
 label departament:
     scene departament
